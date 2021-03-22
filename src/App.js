@@ -104,6 +104,9 @@ class App extends React.Component {
 }
 
 function Pad({ clip }) {
+
+
+  
   const playSound = () => {
     const audioTag = document.getElementById(clip.keyTrigger);
     audioTag.currentTime = 0;
@@ -113,6 +116,7 @@ function Pad({ clip }) {
   return (
     <a href="#" className="drum-pad">
       <audio className="clip" id={clip.keyTrigger} src={clip.url} />
+      {clip.keyTrigger}
     </a>
   );
 }
