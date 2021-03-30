@@ -1,23 +1,26 @@
 import "./App.css";
 import React from "react";
-
-function outputUpdate(vol) {
-  document.querySelector("#volume").value = vol;
-}
+import drums from "./audio.js";
 
 class App extends React.Component {
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
     this.state = {
       value: 0,
     };
 
     this.handleVolume = this.handleVolume.bind(this);
+    // this.playSound = this.playSound.bind(this);
   }
 
   handleVolume = (event) => {
     this.setState({ value: event.target.value });
   };
+
+  // playSound = (e) =>{
+  //   e.preventDefault();
+  //   console.log('test 1 2 ');
+  // }
 
   render() {
     return (
@@ -44,46 +47,21 @@ class App extends React.Component {
               </div>
               <div className="column">
                 <div id="drum-name">
-                  <span>
-                    <strong>No Drum</strong>
-                  </span>
+                  <span>No Drum</span>
                 </div>
               </div>
             </div>
             <div id="drum-pad-container">
-              <div className="row">
-                <a href="#" className="drum-pad">
-                  Q
-                </a>
-                <a href="#" className="drum-pad">
-                  W
-                </a>
-                <a href="#" className="drum-pad">
-                  E
-                </a>
-              </div>
-              <div className="row">
-                <a href="#" className="drum-pad">
-                  A
-                </a>
-                <a href="#" className="drum-pad">
-                  S
-                </a>
-                <a href="#" className="drum-pad">
-                  D
-                </a>
-              </div>
-              <div className="row">
-                <a href="#" className="drum-pad">
-                  Z
-                </a>
-                <a href="#" className="drum-pad">
-                  X
-                </a>
-                <a href="#" className="drum-pad">
-                  C
-                </a>
-              </div>
+              {drums.map((item) => (
+                console.log(item),
+                <Pad
+                  key={item.id} 
+                  onClick={this.playSound}
+                  text={item.keyTrigger}
+                  audio={item.url}
+                  desc={item.desc}
+                />
+              ))}
             </div>
             <div id="volume-box" className="column">
               <input
@@ -103,22 +81,83 @@ class App extends React.Component {
   }
 }
 
-function Pad({ clip }) {
+class Pad extends React.Component {
+  constructor(props) {
+    super(props);
+    this.audio = React.createRef();
 
+    this.state = {
+      play: true,
+      volume: 50,
+    };
+  }
 
-  
-  const playSound = () => {
-    const audioTag = document.getElementById(clip.keyTrigger);
-    audioTag.currentTime = 0;
-    audioTag.play();
+  componentDidMount() {
+    this.audio.current.addEventListener("ended", (e) => {
+      const parent = e.target.parentNode;
+      parent.classList.remove("active");
+    });
+  }
+
+  playSound = (e) => {
+    e.preventDefault();
+    const text=drums.filter(element =>element.keyTrigger===this.audio.current.id);
+
+    const display = document.getElementById("drum-name");
+    const displayChild=display.childNodes[0];
+    displayChild.innerHTML=text[0].desc
+
+    const parent = this.audio.current.parentNode;
+    parent.classList.add("active");
+    this.setState((state) => {
+      state.play ? this.audio.current.play() : this.audio.current.pause();
+    });
   };
 
-  return (
-    <a href="#" className="drum-pad">
-      <audio className="clip" id={clip.keyTrigger} src={clip.url} />
-      {clip.keyTrigger}
-    </a>
-  );
+  render() {
+    const { text, audio, desc } = this.props;
+    return (
+      <a
+        href="#"
+        className="drum-pad"
+        id={`drum-${text}`}
+        onClick={this.playSound}
+        onKeyDown={this.handleKey}
+      >
+        <audio ref={this.audio} className="clip" id={text} src={audio} />
+        {text}
+      </a>
+    );
+  }
 }
+
+document.addEventListener("keydown", (e) => {
+  const id = e.key.toUpperCase();
+  const audio = document.getElementById(id);
+  //console.log(audio);
+  if (audio) {
+    const parent = audio.parentNode;
+    const text=drums.filter(element =>element.keyTrigger==id);
+    const display = document.getElementById("drum-name");
+    const displayChild=display.childNodes[0];
+    displayChild.innerHTML=text[0].desc
+    console.log(text)
+    parent.classList.add("active");
+    audio.play(); 
+  }
+});
+
+//object filter prototype
+Object.filter = function( obj, predicate) {
+  let result = {}, key;
+
+  for (key in obj) {
+      if (obj.hasOwnProperty(key) && !predicate(obj[key])) {
+          result[key] = obj[key];
+      }
+  }
+
+  return result;
+};
 
 export default App;
